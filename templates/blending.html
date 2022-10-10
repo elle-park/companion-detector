@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <link
+          rel="stylesheet"
+          href="{{ url_for('static', filename= 'css/style.css') }}"
+        />
+        <title>Title</title>
+    </head>
+{#    <body>#}
+{#        <img src="https://www.w3schools.com/images/lamp.jpg" alt="Sample Image">#}
+{#     <img src="{{ url_for('src/sign.png') }}" alt="Sample Image">#}
+{#     <img src="src/sign.png" alt="Sample Image">#}
+{##}
+{#    </body>#}
+    <body>
+        <img src="{{ url_for('static',filename=sample_image) }}" alt="Sample Image">
+    </body>
+</html>
+
