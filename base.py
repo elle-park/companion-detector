@@ -23,12 +23,13 @@ def test_page():
 @app.route('/coords', methods =["GET", "POST"])
 def coords_page():
     if request.method == "POST":
-       x_coord = request.form.get("x_coord")
+       x_coord = request.form.get("x_coord", type = int)
        y_coord = request.form.get("y_coord")
     else:
         return
 
     img = "group.png"
+    # x_coord = x_coord.astype(np.float32)
 
     if x_coord < 360:
         mask = "mask1.png"
@@ -41,7 +42,8 @@ def coords_page():
     else:
         mask = "mask5.png"
 
-    return alpha_blending(img, mask) #"(x, y) = (" + x_coord + ", " + y_coord + ")"
+    return alpha_blending(img, mask) 
+    # return "(x, y) = (" + x_coord + ", " + y_coord + ")" 
 
 
 ######## work in progress: ignore this for now ############
@@ -120,11 +122,11 @@ def alpha_blending(image_path, mask):
     if mask == "original":
         return render_template("blending.html", sample_image='src/%s' % image_path)
 
-    img = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/src/%s' % image_path).astype(float)
+    img = cv.imread('/Users/ellepark/Documents/GitHub/companion-detector/static/src/%s' % image_path).astype(np.float32)
     # img = cv.resize(img, (img.shape[1] // 4, img.shape[0] // 4))
-    blurred = cv.blur(img, (11, 11)).astype(float)
+    blurred = cv.blur(img, (11, 11)).astype(np.float32)
 
-    alpha = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/mask/%s' % mask).astype(float)/255
+    alpha = cv.imread('/Users/ellepark/Documents/GitHub/companion-detector/static/mask/%s' % mask).astype(np.float32)/255
     # alpha = cv.resize(alpha, (alpha.shape[1] // 4, alpha.shape[0] // 4))
 
     blurred = cv.multiply(1-alpha, blurred)
@@ -137,7 +139,7 @@ def alpha_blending(image_path, mask):
     # outcome = blurred
     num = time.localtime(time.time()).tm_sec
     filename = 'alpha_%s.jpg' % str(num)
-    cv.imwrite('/Users/owner/Documents/GitHub/companion-detector/static/blending/%s' % filename, outcome)
+    cv.imwrite('/Users/ellepark/Documents/GitHub/companion-detector/static/blending/%s' % filename, outcome)
 
     return render_template("blending.html", sample_image='blending/%s' % filename)
 
