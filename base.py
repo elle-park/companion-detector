@@ -12,11 +12,26 @@ print(data)
 
 
 ######## HOME ############
-@app.route('/')
+@app.route('/', methods =["GET", "POST"])
 def test_page():
     example_embed = 'Sending data... [this is text from python]'
     # look inside `templates` and serve `index.html`
     return render_template('index.html', embed=example_embed)
+
+######## result of coordinates ############
+@app.route('/coords', methods =["GET", "POST"])
+def coords_page():
+    if request.method == "POST":
+       x_coord = request.form.get("x_coord")
+       y_coord = request.form.get("y_coord")
+    return "(x, y) = (" + x_coord + ", " + y_coord + ")" 
+
+######## work in progress: ignore this for now ############
+@app.route('/rectangle')
+def draw_rectangle():
+    example_embed = 'Sending data... [this is text from python]'
+    # look inside `templates` and serve `index.html`
+    return render_template('rectangle.html', embed=example_embed)
 
 
 ######## Example fetch ############

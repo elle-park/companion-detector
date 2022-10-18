@@ -8,13 +8,26 @@
     />
     
     <title>Companion Detector</title>
+    <script type=text/javascript src="{{ url_for('static', filename= 'script/script.js') }}"></script>
   </head>
   <body>
-    
-    <h1>Testing a python fetch requests</h1>
-    <p id="embed">This should not appear</p>
+  
+    <img id="myImgId" alt="" src="https://media-be.chewy.com/wp-content/uploads/2021/06/01091708/Samoyed-FeaturedImage.jpg" width="400" height="300" style="cursor: pointer;"/>
 
-    <p id="mylog" />
+    <script type="text/javascript">
+      var myImg = document.getElementById("myImgId");
+      myImg.onmousedown = GetCoordinates;
+    </script>
+
+    <form action="{{ url_for("coords_page")}}" method="post">
+      <label for="X">X:</label>
+      <input type="number" id="x_coord" name="x_coord">
+      <label for="Y">Y:</label>
+      <input type="number" id="y_coord" name="y_coord">
+      <button type="submit">Submit</button>
+    
   </body>
+  
 </html>
+
 <script type=text/javascript src="{{ url_for('static', filename= 'script/script.js') }}"></script>
