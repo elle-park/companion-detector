@@ -18,13 +18,31 @@ def test_page():
     # look inside `templates` and serve `index.html`
     return render_template('index.html', embed=example_embed)
 
+
 ######## result of coordinates ############
 @app.route('/coords', methods =["GET", "POST"])
 def coords_page():
     if request.method == "POST":
        x_coord = request.form.get("x_coord")
        y_coord = request.form.get("y_coord")
-    return "(x, y) = (" + x_coord + ", " + y_coord + ")" 
+    else:
+        return
+
+    img = "group.png"
+
+    if x_coord < 360:
+        mask = "mask1.png"
+    elif x_coord < 515:
+        mask = "mask2.png"
+    elif x_coord < 680:
+        mask = "mask3.png"
+    elif x_coord < 860:
+        mask = "mask4.png"
+    else:
+        mask = "mask5.png"
+
+    return alpha_blending(img, mask) #"(x, y) = (" + x_coord + ", " + y_coord + ")"
+
 
 ######## work in progress: ignore this for now ############
 @app.route('/rectangle')
@@ -86,6 +104,7 @@ def blending(blur_type, blur_target):
     # blur type 0 - original
     # blur type 1 - pyramid
     # blur type 2 - alpha - TBC
+
     if blur_type == '1':
         outcome = pyramid_blending(img, real)
     elif blur_type == '2':
@@ -96,8 +115,31 @@ def blending(blur_type, blur_target):
     return render_template("blending.html", sample_image=outcome)
 
 
-def alpha_blending(A, B):
-    return "outcome.jpg"
+@app.route('/alpha_blending/<image_path>/<mask>')
+def alpha_blending(image_path, mask):
+    if mask == "original":
+        return render_template("blending.html", sample_image='src/%s' % image_path)
+
+    img = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/src/%s' % image_path).astype(float)
+    # img = cv.resize(img, (img.shape[1] // 4, img.shape[0] // 4))
+    blurred = cv.blur(img, (11, 11)).astype(float)
+
+    alpha = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/mask/%s' % mask).astype(float)/255
+    # alpha = cv.resize(alpha, (alpha.shape[1] // 4, alpha.shape[0] // 4))
+
+    blurred = cv.multiply(1-alpha, blurred)
+    # blurred = cv.subtract(blurred, (alpha)*255)
+    # blur_result = np.zeros(blurred.shape)
+    # blur_result = cv.normalize(blurred, blur_result, 0, 255, cv.NORM_MINMAX)
+    img = cv.multiply(alpha, img)
+
+    outcome = cv.add(img, blurred)
+    # outcome = blurred
+    num = time.localtime(time.time()).tm_sec
+    filename = 'alpha_%s.jpg' % str(num)
+    cv.imwrite('/Users/owner/Documents/GitHub/companion-detector/static/blending/%s' % filename, outcome)
+
+    return render_template("blending.html", sample_image='blending/%s' % filename)
 
 
 def pyramid_blending(A, B):

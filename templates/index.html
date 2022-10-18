@@ -12,8 +12,8 @@
   </head>
   <body>
   
-    <img id="myImgId" alt="" src="https://media-be.chewy.com/wp-content/uploads/2021/06/01091708/Samoyed-FeaturedImage.jpg" width="400" height="300" style="cursor: pointer;"/>
-
+{#    <img id="myImgId" alt="" src="https://media-be.chewy.com/wp-content/uploads/2021/06/01091708/Samoyed-FeaturedImage.jpg" width="400" height="300" style="cursor: pointer;"/>#}
+<img id="myImgId" alt="" src="{{ url_for('static',filename="/src/group.png") }}" style="cursor: pointer;"/>
     <script type="text/javascript">
       var myImg = document.getElementById("myImgId");
       myImg.onmousedown = GetCoordinates;
