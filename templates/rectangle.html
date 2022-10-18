@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename= 'css/style.css') }}"
+    />
+    
+    <title>Companion Detector</title>
+    <script type=text/javascript src="{{ url_for('static', filename= 'script/rectangle.js') }}"></script>
+  </head>
+  <body onload="Initialisation();">
+  
+    <img id="myImgId" alt="" src="rectangle.asp" width="400" height="300" />
+
+    <p><strong>First Point:</strong></p>
+    <p>X: <span id="x1"></span></p>
+    <p>Y: <span id="y1"></span></p>
+    <p><strong>Second Point:</strong></p>
+    <p>X: <span id="x2"></span></p>
+    <p>Y: <span id="y2"></span></p>
+    <form name="form1">
+        <input type="button" name="clearbutton" value="Clear" onclick="Clear();" />
+        <input type="button" name="drawbutton" value="Draw Rectangle" onclick="Draw();" />
+    </form>
+
+    <script type="text/javascript">
+      var myImg = document.getElementById("myImgId");
+      myImg.onmousedown = GetCoordinates;
+    </script>
+
+    
+    <p>X:<span id="x"></span></p>
+    <p>Y:<span id="y"></span></p>
+
+    
+  </body>
+  
+</html>
+
+<script type=text/javascript src="{{ url_for('static', filename= 'script/script.js') }}"></script>
