@@ -122,24 +122,19 @@ def alpha_blending(image_path, mask):
     if mask == "original":
         return render_template("blending.html", sample_image='src/%s' % image_path)
 
-    img = cv.imread('/Users/ellepark/Documents/GitHub/companion-detector/static/src/%s' % image_path).astype(np.float32)
-    # img = cv.resize(img, (img.shape[1] // 4, img.shape[0] // 4))
-    blurred = cv.blur(img, (11, 11)).astype(np.float32)
+    # img = cv.imread('/Users/ellepark/Documents/GitHub/companion-detector/static/src/%s' % image_path).astype(np.float32)
+    img = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/src/%s' % image_path).astype(np.float32)
+    blurred = cv.blur(img, (5, 5))
 
-    alpha = cv.imread('/Users/ellepark/Documents/GitHub/companion-detector/static/mask/%s' % mask).astype(np.float32)/255
-    # alpha = cv.resize(alpha, (alpha.shape[1] // 4, alpha.shape[0] // 4))
-
-    blurred = cv.multiply(1-alpha, blurred)
-    # blurred = cv.subtract(blurred, (alpha)*255)
-    # blur_result = np.zeros(blurred.shape)
-    # blur_result = cv.normalize(blurred, blur_result, 0, 255, cv.NORM_MINMAX)
-    img = cv.multiply(alpha, img)
-
+    # alpha = cv.imread('/Users/ellepark/Documents/GitHub/companion-detector/static/mask/%s' % mask).astype(np.float32)/255 > 0.5
+    alpha = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/mask/%s' % mask).astype(np.float32)
+    blurred = cv.bitwise_and(blurred, alpha)
+    img = cv.bitwise_and(img, cv.bitwise_not(alpha))
     outcome = cv.add(img, blurred)
-    # outcome = blurred
+
     num = time.localtime(time.time()).tm_sec
     filename = 'alpha_%s.jpg' % str(num)
-    cv.imwrite('/Users/ellepark/Documents/GitHub/companion-detector/static/blending/%s' % filename, outcome)
+    cv.imwrite('/Users/owner/Documents/GitHub/companion-detector/static/blending/%s' % filename, outcome)
 
     return render_template("blending.html", sample_image='blending/%s' % filename)
 
