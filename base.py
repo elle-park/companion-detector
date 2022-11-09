@@ -117,24 +117,30 @@ def blending(blur_type, blur_target):
     return render_template("blending.html", sample_image=outcome)
 
 
-@app.route('/alpha_blending/<image_path>/<mask>')
-def alpha_blending(image_path, mask):
+@app.route('/alpha_blending/<image_path>/<mask>/<level>')
+def alpha_blending(image_path, mask, level):
     if mask == "original":
         return render_template("blending.html", sample_image='src/%s' % image_path)
 
-    # img = cv.imread('/Users/ellepark/Documents/GitHub/companion-detector/static/src/%s' % image_path).astype(np.float32)
-    img = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/src/%s' % image_path).astype(np.float32)
-    blurred = cv.blur(img, (5, 5))
+    original = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/src/%s' % image_path)
+    blurred = cv.GaussianBlur(original, (int(level), int(level)), 0)
 
-    # alpha = cv.imread('/Users/ellepark/Documents/GitHub/companion-detector/static/mask/%s' % mask).astype(np.float32)/255 > 0.5
-    alpha = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/mask/%s' % mask).astype(np.float32)
+    alpha = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/mask/%s' % mask)
+
     blurred = cv.bitwise_and(blurred, alpha)
-    img = cv.bitwise_and(img, cv.bitwise_not(alpha))
-    outcome = cv.add(img, blurred)
+    background = cv.bitwise_and(original, cv.bitwise_not(alpha))
+    outcome = cv.add(background, blurred)
+    # outcome = cv.addWeighted(outcome, 0.8, original, 0.2, 0.0)
+
+    # blending needed
 
     num = time.localtime(time.time()).tm_sec
     filename = 'alpha_%s.jpg' % str(num)
     cv.imwrite('/Users/owner/Documents/GitHub/companion-detector/static/blending/%s' % filename, outcome)
+
+    # blending
+    size = 768
+    filename = pyramid_blending(original[:size, :size], original[:size, :size])
 
     return render_template("blending.html", sample_image='blending/%s' % filename)
 
@@ -179,7 +185,114 @@ def pyramid_blending(A, B):
     num = time.localtime(time.time()).tm_sec
     filename = 'pyramid_%s.jpg' % str(num)
     cv.imwrite('/Users/owner/Documents/GitHub/companion-detector/static/blending/%s' % filename, ls_)
-    return 'blending/%s' % filename
+    return filename
+
+
+def convolution(img, kernel):
+    MAX_ROWS = img.shape[0]
+    MAX_COLS = img.shape[1]
+    kernel_size = kernel.shape[0]
+    pad_amount = int(kernel_size / 2)
+    gaussian_convolved_img = np.zeros(img.shape)
+    for i in range(3):
+        zero_padded = img #cv.pad(img[:, :, i], u_pad=pad_amount, v_pad=pad_amount)
+        for r in range(pad_amount, MAX_ROWS + pad_amount):
+            for c in range(pad_amount, MAX_COLS + pad_amount):
+                #             print("r-pad_amount", r-pad_amount)
+                #             print("r-pad_amount+kernel_size", r-pad_amount+kernel_size)
+                conv = np.multiply(zero_padded[r - pad_amount:r - pad_amount + kernel_size,
+                                   c - pad_amount:c - pad_amount + kernel_size], kernel)
+                conv = np.sum(conv)
+                gaussian_convolved_img[r - pad_amount, c - pad_amount, i] = float(conv)
+    return gaussian_convolved_img
+
+
+def make_one_D_kernel(img, kernel):
+    MAX_ROWS = img.shape[0]
+    MAX_COLS = img.shape[1]
+    one_d_gaussian_kernel = kernel
+
+    kernel_matrix = np.zeros((MAX_ROWS, MAX_ROWS))
+    # print(kernel_matrix.shape)
+    for m in range(MAX_ROWS):
+        #     print(m)
+        #     print(m+(len(one_d_gaussian_kernel)))
+        #     print(one_d_gaussian_kernel)
+        #     print()
+        over = int(len(one_d_gaussian_kernel) / 2)
+        mid = over
+        lower = max(0, m - over)
+        upper = min(m + over, MAX_ROWS)
+        kernel_lower = mid - over if m - over >= 0 else abs(m - over)
+        kernel_upper = mid + over if m + over < MAX_ROWS else (mid + over) - (m + over - MAX_ROWS)
+        kernel_matrix[m, lower:upper] = one_d_gaussian_kernel[kernel_lower:kernel_upper]
+    return kernel_matrix
+
+
+def down_sample(img, factor=2):
+    MAX_ROWS = img.shape[0]
+    MAX_COLS = img.shape[1]
+    small_img = np.zeros((int(MAX_ROWS / 2), int(MAX_COLS / 2), 3))
+
+    small_img[:, :, 0] = cv.resize(img[:, :, 0], [int(MAX_ROWS / 2), int(MAX_COLS / 2)])
+    small_img[:, :, 1] = cv.resize(img[:, :, 1], [int(MAX_ROWS / 2), int(MAX_COLS / 2)])
+    small_img[:, :, 2] = cv.resize(img[:, :, 2], [int(MAX_ROWS / 2), int(MAX_COLS / 2)])
+    return small_img
+
+
+def up_sample(img, factor=2):
+    MAX_ROWS = img.shape[0]
+    MAX_COLS = img.shape[1]
+    small_img = np.zeros((int(MAX_ROWS * 2), int(MAX_COLS * 2), 3))
+
+    small_img[:, :, 0] = cv.resize(img[:, :, 0], [int(MAX_ROWS * 2), int(MAX_COLS * 2)])
+    small_img[:, :, 1] = cv.resize(img[:, :, 1], [int(MAX_ROWS * 2), int(MAX_COLS * 2)])
+    small_img[:, :, 2] = cv.resize(img[:, :, 2], [int(MAX_ROWS * 2), int(MAX_COLS * 2)])
+    return small_img
+
+
+def one_level_laplacian(img, G):
+    # generate Gaussian pyramid for Apple
+    A = img.copy()
+
+    # Gaussian blur on Apple
+    blurred_A = convolution(A, G)
+
+    # Downsample blurred A
+    small_A = down_sample(blurred_A)
+
+    # Upsample small, blurred A
+    # insert zeros between pixels, then apply a gaussian low pass filter
+    large_A = up_sample(small_A)
+    upsampled_A = convolution(large_A, G)
+
+    # generate Laplacian level for A
+    laplace_A = A - upsampled_A
+
+    # reconstruct A
+    #     reconstruct_A = laplace_A + upsampled_A
+
+    return small_A, upsampled_A, laplace_A
+
+
+def F_transform(small_A, G):
+    large_A = up_sample(small_A)
+    upsampled_A = convolution(large_A, G)
+    return upsampled_A
+
+
+def gamma_decode(img):
+    new_img = np.zeros((img.shape))
+    for r in range(img.shape[0]):
+        for c in range(img.shape[1]):
+            new_img[r, c, 0] = np.power(img[r, c, 0], 1 / 1.2)
+            new_img[r, c, 1] = np.power(img[r, c, 1], 1 / 1.2)
+            new_img[r, c, 2] = np.power(img[r, c, 2], 1 / 1.2)
+    return new_img
+
+
+def pyramid():
+    gaussian_kernel = np.load('gaussian-kernel.npy')
 
 
 # run app
