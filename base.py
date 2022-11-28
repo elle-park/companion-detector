@@ -42,7 +42,7 @@ def coords_page():
     else:
         mask = "mask5.png"
 
-    return alpha_blending(img, mask) 
+    return blur(img, mask)
     # return "(x, y) = (" + x_coord + ", " + y_coord + ")" 
 
 
@@ -81,218 +81,141 @@ def datafind(transaction_id, second_arg):
         return message  # jsonify(message)  # serialize and use JSON headers
 
 
-@app.route('/blending/<blur_type>/<blur_target>')
-def blending(blur_type, blur_target):
-    outcome = ''
+# @app.route('/blending/<blur_type>/<blur_target>')
+# def blending(blur_type, blur_target):
+#     outcome = ''
+#
+#     img = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/src/thor.png')
+#     img = img[200:584, 0:384]
+#     width = img.shape[1]
+#     width_cutoff = width // 2
+#
+#     if blur_target == 'right':
+#         img_left = img[:, :width_cutoff]
+#         img_right = cv.blur(img[:, width_cutoff:], (5, 5))
+#     else:
+#         img_left = cv.blur(img[:, :width_cutoff], (5, 5))
+#         img_right = img[:, width_cutoff:]
+#
+#     real = np.hstack((img_left, img_right))
+#
+#     num = time.localtime(time.time()).tm_sec
+#     outcome = 'blending/real_%s.jpg' % str(num)
+#     cv.imwrite('/Users/owner/Documents/GitHub/companion-detector/static/%s' % outcome, real)
+#
+#     # blur type 0 - original
+#     # blur type 1 - pyramid
+#     # blur type 2 - alpha - TBC
+#
+#     if blur_type == '1':
+#         outcome = pyramid_blending(img, real)
+#     elif blur_type == '2':
+#         outcome = blur(img, real)
+#
+#     print(outcome)
+#
+#     return render_template("blending.html", sample_image=outcome)
 
-    img = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/src/thor.png')
-    img = img[200:584, 0:384]
-    width = img.shape[1]
-    width_cutoff = width // 2
 
-    if blur_target == 'right':
-        img_left = img[:, :width_cutoff]
-        img_right = cv.blur(img[:, width_cutoff:], (5, 5))
-    else:
-        img_left = cv.blur(img[:, :width_cutoff], (5, 5))
-        img_right = img[:, width_cutoff:]
-
-    real = np.hstack((img_left, img_right))
-
-    num = time.localtime(time.time()).tm_sec
-    outcome = 'blending/real_%s.jpg' % str(num)
-    cv.imwrite('/Users/owner/Documents/GitHub/companion-detector/static/%s' % outcome, real)
-
-    # blur type 0 - original
-    # blur type 1 - pyramid
-    # blur type 2 - alpha - TBC
-
-    if blur_type == '1':
-        outcome = pyramid_blending(img, real)
-    elif blur_type == '2':
-        outcome = alpha_blending(img, real)
-
-    print(outcome)
-
-    return render_template("blending.html", sample_image=outcome)
-
-
-@app.route('/alpha_blending/<image_path>/<mask>/<level>')
-def alpha_blending(image_path, mask, level):
-    if mask == "original":
+@app.route('/blur/<blend_type>/<image_path>/<mask_path>/<level>')
+def blur(blend_type, image_path, mask_path, level):
+    if mask_path == "original":
         return render_template("blending.html", sample_image='src/%s' % image_path)
 
     original = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/src/%s' % image_path)
     blurred = cv.GaussianBlur(original, (int(level), int(level)), 0)
 
-    alpha = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/mask/%s' % mask)
+    mask = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/mask/%s' % mask_path)
 
-    blurred = cv.bitwise_and(blurred, alpha)
-    background = cv.bitwise_and(original, cv.bitwise_not(alpha))
-    outcome = cv.add(background, blurred)
-    # outcome = cv.addWeighted(outcome, 0.8, original, 0.2, 0.0)
+    if blend_type == "alpha":
+        blurred = cv.bitwise_and(blurred, mask)
+        background = cv.bitwise_and(original, cv.bitwise_not(mask))
+        outcome = cv.add(background, blurred)
+        num = time.localtime(time.time()).tm_sec
+        filename = 'binary_%s.jpg' % str(num)
+        cv.imwrite('/Users/owner/Documents/GitHub/companion-detector/static/blending/%s' % filename, outcome)
 
-    # blending needed
-
-    num = time.localtime(time.time()).tm_sec
-    filename = 'alpha_%s.jpg' % str(num)
-    cv.imwrite('/Users/owner/Documents/GitHub/companion-detector/static/blending/%s' % filename, outcome)
-
-    # blending
-    size = 768
-    filename = pyramid_blending(original[:size, :size], original[:size, :size])
+    else:
+        filename = pyramid(original, blurred, mask)
 
     return render_template("blending.html", sample_image='blending/%s' % filename)
 
 
-def pyramid_blending(A, B):
-    G = A.copy()
-    gpA = [G]
-    for i in range(6):
-        G = cv.pyrDown(G)
-        gpA.append(G)
-    # generate Gaussian pyramid for B
-    G = B.copy()
-    gpB = [G]
-    for i in range(6):
-        G = cv.pyrDown(G)
-        gpB.append(G)
+def pyramid(img_a, img_b, m):
+    size = 768
+    img1 = img_a[:size, :size].copy()
+    img2 = img_b[:size, :size].copy()
 
-    lpA = [gpA[5]]
-    for i in range(5, 0, -1):
-        GE = cv.pyrUp(gpA[i])
-        L = cv.subtract(gpA[i - 1], GE)
-        lpA.append(L)
+    # Create the mask
 
-    # generate Laplacian Pyramid for B
-    lpB = [gpB[5]]
-    for i in range(5, 0, -1):
-        GE = cv.pyrUp(gpB[i])
-        L = cv.subtract(gpB[i - 1], GE)
-        lpB.append(L)
+    mask = m[:size, :size].copy() / 255
 
-    LS = []
-    for la, lb in zip(lpA, lpB):
-        rows, cols, dpt = la.shape
-        ls = np.hstack((la[:, 0:cols // 2], lb[:, cols // 2:]))
-        LS.append(ls)
+    num_levels = 5
 
-    ls_ = LS[0]
-    for i in range(1, 6):
-        ls_ = cv.pyrUp(ls_)
-        ls_ = cv.add(ls_, LS[i])
+    # For image-1, calculate Gaussian and Laplacian
+    gaussian_pyr_1 = gaussian_pyramid(img1, num_levels)
+    laplacian_pyr_1 = laplacian_pyramid(gaussian_pyr_1)
+    # For image-2, calculate Gaussian and Laplacian
+    gaussian_pyr_2 = gaussian_pyramid(img2, num_levels)
+    laplacian_pyr_2 = laplacian_pyramid(gaussian_pyr_2)
+    # Calculate the Gaussian pyramid for the mask image and reverse it.
+    mask_pyr_final = gaussian_pyramid(mask, num_levels)
+    mask_pyr_final.reverse()
+    # Blend the images
+    add_laplace = blend(laplacian_pyr_1, laplacian_pyr_2, mask_pyr_final)
+    # Reconstruct the images
+    final = reconstruct(add_laplace)
+    # Save the final image to the disk
+    # cv2.imwrite('D:/downloads/pp2.jpg', final[num_levels])
 
     num = time.localtime(time.time()).tm_sec
-    filename = 'pyramid_%s.jpg' % str(num)
-    cv.imwrite('/Users/owner/Documents/GitHub/companion-detector/static/blending/%s' % filename, ls_)
+    filename = 'blend_%s.jpg' % str(num)
+    cv.imwrite('/Users/owner/Documents/GitHub/companion-detector/static/blending/%s' % filename, final[num_levels])
+
     return filename
 
 
-def convolution(img, kernel):
-    MAX_ROWS = img.shape[0]
-    MAX_COLS = img.shape[1]
-    kernel_size = kernel.shape[0]
-    pad_amount = int(kernel_size / 2)
-    gaussian_convolved_img = np.zeros(img.shape)
-    for i in range(3):
-        zero_padded = img #cv.pad(img[:, :, i], u_pad=pad_amount, v_pad=pad_amount)
-        for r in range(pad_amount, MAX_ROWS + pad_amount):
-            for c in range(pad_amount, MAX_COLS + pad_amount):
-                #             print("r-pad_amount", r-pad_amount)
-                #             print("r-pad_amount+kernel_size", r-pad_amount+kernel_size)
-                conv = np.multiply(zero_padded[r - pad_amount:r - pad_amount + kernel_size,
-                                   c - pad_amount:c - pad_amount + kernel_size], kernel)
-                conv = np.sum(conv)
-                gaussian_convolved_img[r - pad_amount, c - pad_amount, i] = float(conv)
-    return gaussian_convolved_img
+def gaussian_pyramid(img, num_levels):
+    lower = img.copy()
+    gaussian_pyr = [lower]
+    for i in range(num_levels):
+        lower = cv.pyrDown(lower)
+        gaussian_pyr.append(np.float32(lower))
+    return gaussian_pyr
 
 
-def make_one_D_kernel(img, kernel):
-    MAX_ROWS = img.shape[0]
-    MAX_COLS = img.shape[1]
-    one_d_gaussian_kernel = kernel
+def laplacian_pyramid(gaussian_pyr):
+    laplacian_top = gaussian_pyr[-1]
+    num_levels = len(gaussian_pyr) - 1
 
-    kernel_matrix = np.zeros((MAX_ROWS, MAX_ROWS))
-    # print(kernel_matrix.shape)
-    for m in range(MAX_ROWS):
-        #     print(m)
-        #     print(m+(len(one_d_gaussian_kernel)))
-        #     print(one_d_gaussian_kernel)
-        #     print()
-        over = int(len(one_d_gaussian_kernel) / 2)
-        mid = over
-        lower = max(0, m - over)
-        upper = min(m + over, MAX_ROWS)
-        kernel_lower = mid - over if m - over >= 0 else abs(m - over)
-        kernel_upper = mid + over if m + over < MAX_ROWS else (mid + over) - (m + over - MAX_ROWS)
-        kernel_matrix[m, lower:upper] = one_d_gaussian_kernel[kernel_lower:kernel_upper]
-    return kernel_matrix
+    laplacian_pyr = [laplacian_top]
+    for i in range(num_levels, 0, -1):
+        size = (gaussian_pyr[i - 1].shape[1], gaussian_pyr[i - 1].shape[0])
+        gaussian_expanded = cv.pyrUp(gaussian_pyr[i], dstsize=size)
+        laplacian = np.subtract(gaussian_pyr[i - 1], gaussian_expanded)
+        laplacian_pyr.append(laplacian)
+    return laplacian_pyr
 
 
-def down_sample(img, factor=2):
-    MAX_ROWS = img.shape[0]
-    MAX_COLS = img.shape[1]
-    small_img = np.zeros((int(MAX_ROWS / 2), int(MAX_COLS / 2), 3))
-
-    small_img[:, :, 0] = cv.resize(img[:, :, 0], [int(MAX_ROWS / 2), int(MAX_COLS / 2)])
-    small_img[:, :, 1] = cv.resize(img[:, :, 1], [int(MAX_ROWS / 2), int(MAX_COLS / 2)])
-    small_img[:, :, 2] = cv.resize(img[:, :, 2], [int(MAX_ROWS / 2), int(MAX_COLS / 2)])
-    return small_img
+def blend(laplacian_A, laplacian_B, mask_pyr):
+    LS = []
+    for la, lb, mask in zip(laplacian_A, laplacian_B, mask_pyr):
+        # np.divide(mask, 255, out=mask)
+        ls = lb * mask + la * (1.0 - mask)
+        LS.append(ls)
+    return LS
 
 
-def up_sample(img, factor=2):
-    MAX_ROWS = img.shape[0]
-    MAX_COLS = img.shape[1]
-    small_img = np.zeros((int(MAX_ROWS * 2), int(MAX_COLS * 2), 3))
-
-    small_img[:, :, 0] = cv.resize(img[:, :, 0], [int(MAX_ROWS * 2), int(MAX_COLS * 2)])
-    small_img[:, :, 1] = cv.resize(img[:, :, 1], [int(MAX_ROWS * 2), int(MAX_COLS * 2)])
-    small_img[:, :, 2] = cv.resize(img[:, :, 2], [int(MAX_ROWS * 2), int(MAX_COLS * 2)])
-    return small_img
-
-
-def one_level_laplacian(img, G):
-    # generate Gaussian pyramid for Apple
-    A = img.copy()
-
-    # Gaussian blur on Apple
-    blurred_A = convolution(A, G)
-
-    # Downsample blurred A
-    small_A = down_sample(blurred_A)
-
-    # Upsample small, blurred A
-    # insert zeros between pixels, then apply a gaussian low pass filter
-    large_A = up_sample(small_A)
-    upsampled_A = convolution(large_A, G)
-
-    # generate Laplacian level for A
-    laplace_A = A - upsampled_A
-
-    # reconstruct A
-    #     reconstruct_A = laplace_A + upsampled_A
-
-    return small_A, upsampled_A, laplace_A
-
-
-def F_transform(small_A, G):
-    large_A = up_sample(small_A)
-    upsampled_A = convolution(large_A, G)
-    return upsampled_A
-
-
-def gamma_decode(img):
-    new_img = np.zeros((img.shape))
-    for r in range(img.shape[0]):
-        for c in range(img.shape[1]):
-            new_img[r, c, 0] = np.power(img[r, c, 0], 1 / 1.2)
-            new_img[r, c, 1] = np.power(img[r, c, 1], 1 / 1.2)
-            new_img[r, c, 2] = np.power(img[r, c, 2], 1 / 1.2)
-    return new_img
-
-
-def pyramid():
-    gaussian_kernel = np.load('gaussian-kernel.npy')
+def reconstruct(laplacian_pyr):
+    laplacian_top = laplacian_pyr[0]
+    laplacian_lst = [laplacian_top]
+    num_levels = len(laplacian_pyr) - 1
+    for i in range(num_levels):
+        size = (laplacian_pyr[i + 1].shape[1], laplacian_pyr[i + 1].shape[0])
+        laplacian_expanded = cv.pyrUp(laplacian_top, dstsize=size)
+        laplacian_top = cv.add(np.array(laplacian_pyr[i + 1], dtype='f'), laplacian_expanded)
+        laplacian_lst.append(laplacian_top)
+    return laplacian_lst
 
 
 # run app
