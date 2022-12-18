@@ -65,3 +65,7 @@ function GetCoordinates(e) {
   document.getElementById("x_coord").value = PosX;
   document.getElementById("y_coord").value = PosY;
 }
+
+function sliderChange(val) {
+  document.getElementById("output").innerHTML = val; // get
+}

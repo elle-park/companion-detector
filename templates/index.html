@@ -6,28 +6,88 @@
       rel="stylesheet"
       href="{{ url_for('static', filename= 'css/style.css') }}"
     />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha512-tqup5t5XyJXlvX8b/E9pI0swGA4AugszFqvdWASa2/484oj4HW7UaXKwRmnMLKFp3ZWeTwjjCh6J40AvdUQhrA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
     <title>Companion Detector</title>
     <script type=text/javascript src="{{ url_for('static', filename= 'script/script.js') }}"></script>
+
   </head>
+  
   <body>
   
-{#    <img id="myImgId" alt="" src="https://media-be.chewy.com/wp-content/uploads/2021/06/01091708/Samoyed-FeaturedImage.jpg" width="400" height="300" style="cursor: pointer;"/>#}
-<img id="myImgId" alt="" src="{{ url_for('static',filename="/src/group.png") }}" style="cursor: pointer;"/>
-    <script type="text/javascript">
-      var myImg = document.getElementById("myImgId");
-      myImg.onmousedown = GetCoordinates;
-    </script>
+    <h1>Companion Detector</h1>
+    <h3>Sample Images</h3>
 
-    <form action="{{ url_for("coords_page")}}" method="post">
-      <label for="X">X:</label>
-      <input type="number" id="x_coord" name="x_coord">
-      <label for="Y">Y:</label>
-      <input type="number" id="y_coord" name="y_coord">
-      <button type="submit">Submit</button>
+    <div class="row">
+      <div class="container">
+        <div class="test_box box-01 col-xs-6 col-md-4">
+          <div class="inner">
+            <a href="sample1" class="test_click">
+              <div class="flex_this">
+                <span class="test_link">Link</span>
+              </div>
+            </a>
+          </div>
+        </div>
+        <div class="test_box box-02 col-xs-6 col-md-4">
+          <div class="inner">
+            <a href="sample2" class="test_click">
+              <div class="flex_this">
+                <span class="test_link">Link</span>
+              </div>
+            </a>
+          </div>
+        </div>
+        <div class="test_box box-03 col-xs-6 col-md-4">
+          <div class="inner">
+            <a href="#" class="test_click">
+              <div class="flex_this">
+                <span class="test_link">Link</span>
+              </div>
+            </a>
+          </div>
+        </div>
+        <div class="test_box box-04 col-xs-6 col-md-4">
+          <div class="inner">
+            <a href="#" class="test_click">
+              <div class="flex_this">
+                <span class="test_link">Link</span>
+              </div>
+            </a>
+          </div>
+        </div>
+        <div class="test_box box-05 col-xs-6 col-md-4">
+          <div class="inner">
+            <a href="#" class="test_click">
+              <div class="flex_this">
+                <span class="test_link">Link</span>
+              </div>
+            </a>
+          </div>
+        </div>
+        <div class="test_box box-06 col-xs-6 col-md-4">
+          <div class="inner">
+            <a href="#" class="test_click">
+              <div class="flex_this">
+                <span class="test_link">Link</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Methdology</h3>
+    <p>Place powerpoint preview in the future here</p>
+
+    <h3>Repository</h3>
+    <p>Link to repo in the future here</p>
+
+
     
   </body>
   
 </html>
 
-<script type=text/javascript src="{{ url_for('static', filename= 'script/script.js') }}"></script>
+
