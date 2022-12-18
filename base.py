@@ -146,30 +146,32 @@ def pyramid(img_a, img_b, m):
     img1 = img_a[:size, :size].copy()
     img2 = img_b[:size, :size].copy()
 
-    # Create the mask
-
     mask = m[:size, :size].copy() / 255
 
-    num_levels = 5
+    num_levels = 7
 
-    # For image-1, calculate Gaussian and Laplacian
     gaussian_pyr_1 = gaussian_pyramid(img1, num_levels)
     laplacian_pyr_1 = laplacian_pyramid(gaussian_pyr_1)
-    # For image-2, calculate Gaussian and Laplacian
+
     gaussian_pyr_2 = gaussian_pyramid(img2, num_levels)
     laplacian_pyr_2 = laplacian_pyramid(gaussian_pyr_2)
-    # Calculate the Gaussian pyramid for the mask image and reverse it.
-    mask_pyr_final = gaussian_pyramid(mask, num_levels)
+
+    mask_pyr_final = gaussian_pyramid(cv.GaussianBlur(mask, (9,9), 9), num_levels)
+    # mask_pyr_final = gaussian_pyramid(mask, num_levels)
     mask_pyr_final.reverse()
+
+    # laplacian_pyr_1 = pyr(img1, num_levels)
+    # laplacian_pyr_2 = pyr(img2, num_levels)
+    # mask_pyr_final = gaussian_pyramid(mask, num_levels)
+    # mask_pyr_final.reverse()
+
     # Blend the images
     add_laplace = blend(laplacian_pyr_1, laplacian_pyr_2, mask_pyr_final)
-    # Reconstruct the images
     final = reconstruct(add_laplace)
-    # Save the final image to the disk
-    # cv2.imwrite('D:/downloads/pp2.jpg', final[num_levels])
 
     num = time.localtime(time.time()).tm_sec
     filename = 'blend_%s.jpg' % str(num)
+    print(filename)
     cv.imwrite('/Users/owner/Documents/GitHub/companion-detector/static/blending/%s' % filename, final[num_levels])
 
     return filename
@@ -179,6 +181,7 @@ def gaussian_pyramid(img, num_levels):
     lower = img.copy()
     gaussian_pyr = [lower]
     for i in range(num_levels):
+        lower = cv.GaussianBlur(lower, (13, 13), 13)
         lower = cv.pyrDown(lower)
         gaussian_pyr.append(np.float32(lower))
     return gaussian_pyr
@@ -193,6 +196,31 @@ def laplacian_pyramid(gaussian_pyr):
         size = (gaussian_pyr[i - 1].shape[1], gaussian_pyr[i - 1].shape[0])
         gaussian_expanded = cv.pyrUp(gaussian_pyr[i], dstsize=size)
         laplacian = np.subtract(gaussian_pyr[i - 1], gaussian_expanded)
+        laplacian_pyr.append(laplacian)
+    return laplacian_pyr
+
+
+def pyr(img, num_levels):
+    lower = img.copy()
+    smaller = img.copy()
+
+    gaussian_pyr = [lower]
+    pre_blur_pyr = [smaller]
+    for i in range(num_levels):
+        lower = cv.GaussianBlur(lower, (9, 9), 13)
+        lower = cv.pyrDown(lower)
+        smaller = cv.pyrDown(smaller)
+        gaussian_pyr.append(np.float32(lower))
+        pre_blur_pyr.append(np.float32(smaller))
+
+    laplacian_top = gaussian_pyr[-1]
+    num_levels = len(gaussian_pyr) - 1
+
+    laplacian_pyr = [laplacian_top]
+    for i in range(num_levels, 0, -1):
+        size = (gaussian_pyr[i - 1].shape[1], gaussian_pyr[i - 1].shape[0])
+        gaussian_expanded = cv.pyrUp(gaussian_pyr[i], dstsize=size)
+        laplacian = np.subtract(pre_blur_pyr[i - 1], gaussian_expanded)
         laplacian_pyr.append(laplacian)
     return laplacian_pyr
 
