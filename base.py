@@ -81,41 +81,6 @@ def datafind(transaction_id, second_arg):
         return message  # jsonify(message)  # serialize and use JSON headers
 
 
-# @app.route('/blending/<blur_type>/<blur_target>')
-# def blending(blur_type, blur_target):
-#     outcome = ''
-#
-#     img = cv.imread('/Users/owner/Documents/GitHub/companion-detector/static/src/thor.png')
-#     img = img[200:584, 0:384]
-#     width = img.shape[1]
-#     width_cutoff = width // 2
-#
-#     if blur_target == 'right':
-#         img_left = img[:, :width_cutoff]
-#         img_right = cv.blur(img[:, width_cutoff:], (5, 5))
-#     else:
-#         img_left = cv.blur(img[:, :width_cutoff], (5, 5))
-#         img_right = img[:, width_cutoff:]
-#
-#     real = np.hstack((img_left, img_right))
-#
-#     num = time.localtime(time.time()).tm_sec
-#     outcome = 'blending/real_%s.jpg' % str(num)
-#     cv.imwrite('/Users/owner/Documents/GitHub/companion-detector/static/%s' % outcome, real)
-#
-#     # blur type 0 - original
-#     # blur type 1 - pyramid
-#     # blur type 2 - alpha - TBC
-#
-#     if blur_type == '1':
-#         outcome = pyramid_blending(img, real)
-#     elif blur_type == '2':
-#         outcome = blur(img, real)
-#
-#     print(outcome)
-#
-#     return render_template("blending.html", sample_image=outcome)
-
 
 @app.route('/blur/<blend_type>/<image_path>/<mask_path>/<level>')
 def blur(blend_type, image_path, mask_path, level):
@@ -157,13 +122,8 @@ def pyramid(img_a, img_b, m):
     laplacian_pyr_2 = laplacian_pyramid(gaussian_pyr_2)
 
     mask_pyr_final = gaussian_pyramid(cv.GaussianBlur(mask, (9,9), 9), num_levels)
-    # mask_pyr_final = gaussian_pyramid(mask, num_levels)
     mask_pyr_final.reverse()
 
-    # laplacian_pyr_1 = pyr(img1, num_levels)
-    # laplacian_pyr_2 = pyr(img2, num_levels)
-    # mask_pyr_final = gaussian_pyramid(mask, num_levels)
-    # mask_pyr_final.reverse()
 
     # Blend the images
     add_laplace = blend(laplacian_pyr_1, laplacian_pyr_2, mask_pyr_final)
