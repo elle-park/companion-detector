@@ -106,12 +106,16 @@ def blur(blend_type, image_path, mask_path, level):
     return render_template("blending.html", sample_image='blending/%s' % filename)
 
 
-def pyramid(img_a, img_b, m):
-    size = 768
-    img1 = img_a[:size, :size].copy()
-    img2 = img_b[:size, :size].copy()
-
-    mask = m[:size, :size].copy() / 255
+def pyramid(img_a, img_b, m, x = 800, y = 400):
+    # x,y coordinates from either button click or box
+    size = 256*3
+    if x < img_a.shape[0]/2:
+        x0, x1, y0, y1 = 0, size, 0, size
+    else:
+        x0, x1, y0, y1 = img_a.shape[0]-size, img_a.shape[0], img_a.shape[1]-size, img_a.shape[1]
+    img1 = img_a[x0:x1, y0:y1].copy()
+    img2 = img_b[x0:x1, y0:y1].copy()
+    mask = m[x0:x1, y0:y1].copy() / 255
 
     num_levels = 7
 
@@ -121,18 +125,19 @@ def pyramid(img_a, img_b, m):
     gaussian_pyr_2 = gaussian_pyramid(img2, num_levels)
     laplacian_pyr_2 = laplacian_pyramid(gaussian_pyr_2)
 
-    mask_pyr_final = gaussian_pyramid(cv.GaussianBlur(mask, (9,9), 9), num_levels)
+    mask_pyr_final = gaussian_pyramid(cv.GaussianBlur(mask, (9, 9), 9), num_levels)
     mask_pyr_final.reverse()
-
 
     # Blend the images
     add_laplace = blend(laplacian_pyr_1, laplacian_pyr_2, mask_pyr_final)
     final = reconstruct(add_laplace)
 
+    img_a[x0:x1, y0:y1] = final[num_levels]
+
     num = time.localtime(time.time()).tm_sec
     filename = 'blend_%s.jpg' % str(num)
     print(filename)
-    cv.imwrite('/Users/owner/Documents/GitHub/companion-detector/static/blending/%s' % filename, final[num_levels])
+    cv.imwrite('/Users/owner/Documents/GitHub/companion-detector/static/blending/%s' % filename, img_a)
 
     return filename
 
