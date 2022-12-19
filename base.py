@@ -23,12 +23,12 @@ def test_page():
 def sample1_page():
     example_embed = 'Sending data... [this is text from python]'
     # coords = [y_left_top, x_left_top, y_right_bttm, y_right_bttm]
-    s0_coords = [42.319610595703125, 118.13470458984375, 702.53466796875, 369.06103515625]
-    s1_coords = [204.07962036132812, 844.4298095703125, 619.9171142578125, 1112.060791015625]
-    s2_coords = [131.9391632080078, 513.0297241210938, 611.9575805664062, 678.2179565429688]
-    s3_coords = [254.4031982421875, 382.82110595703125, 695.7974853515625, 574.1754760742188]
-    s5_coords = [285.6714782714844, 613.717041015625, 698.4228515625, 842.5339965820312]
-    mask_coords = {'s0.png': s0_coords, 's1.png': s1_coords, 's2.png': s2_coords, 's3.png': s3_coords, 's5.png': s5_coords}
+    # s0_coords = [42.319610595703125, 118.13470458984375, 702.53466796875, 369.06103515625]
+    # s1_coords = [204.07962036132812, 844.4298095703125, 619.9171142578125, 1112.060791015625]
+    # s2_coords = [131.9391632080078, 513.0297241210938, 611.9575805664062, 678.2179565429688]
+    # s3_coords = [254.4031982421875, 382.82110595703125, 695.7974853515625, 574.1754760742188]
+    # s5_coords = [285.6714782714844, 613.717041015625, 698.4228515625, 842.5339965820312]
+    # mask_coords = {'s0.png': s0_coords, 's1.png': s1_coords, 's2.png': s2_coords, 's3.png': s3_coords, 's5.png': s5_coords}
 
     # look inside `templates` and serve `index.html`
     return render_template('sample1.html', embed=example_embed)
@@ -39,6 +39,19 @@ def sample2_page():
     # look inside `templates` and serve `index.html`
     return render_template('sample2.html', embed=example_embed)
 
+def select_mask_from_coords(x_point, y_point, mask_coords):
+    
+    filename = 'ERROR'
+    coord = []
+    for file, m in mask_coords.items():
+      [y_left_top, x_left_top, y_right_bttm, x_right_bttm] = m[0:4]
+
+      if ((y_left_top <= y_point <= y_right_bttm) and ((x_left_top <= x_point <= x_right_bttm))):
+        filename = file
+        coord = [y_left_top, x_left_top, y_right_bttm, x_right_bttm]
+      
+      # return filename + index in mask_coords of that filename
+    return filename, coord
 
 ######## result of coordinates ############
 @app.route('/slider', methods =["GET", "POST"])
@@ -55,17 +68,25 @@ def slider_page():
 
     img = "group.png"
     # x_coord = x_coord.astype(np.float32)
+    s0_coords = [42.319610595703125, 118.13470458984375, 702.53466796875, 369.06103515625]
+    s1_coords = [204.07962036132812, 844.4298095703125, 619.9171142578125, 1112.060791015625]
+    s2_coords = [131.9391632080078, 513.0297241210938, 611.9575805664062, 678.2179565429688]
+    s3_coords = [254.4031982421875, 382.82110595703125, 695.7974853515625, 574.1754760742188]
+    s5_coords = [285.6714782714844, 613.717041015625, 698.4228515625, 842.5339965820312]
+    s_coords = {'s0.jpeg': s0_coords, 's1.jpeg': s1_coords, 's2.jpeg': s2_coords, 's3.jpeg': s3_coords, 's4.jpeg': s5_coords}
+    
+    mask, mask_coords = select_mask_from_coords(x_coord, y_coord, s_coords)
 
-    if x_coord < 360:
-        mask = "s0.jpeg"
-    elif x_coord < 515:
-        mask = "s3.jpeg"
-    elif x_coord < 680:
-        mask = "s2.jpeg"
-    elif x_coord < 860:
-        mask = "s4.jpeg"
-    else:
-        mask = "s1.jpeg"
+    # if x_coord < 360:
+    #     mask = "s0.jpeg"
+    # elif x_coord < 515:
+    #     mask = "s3.jpeg"
+    # elif x_coord < 680:
+    #     mask = "s2.jpeg"
+    # elif x_coord < 860:
+    #     mask = "s4.jpeg"
+    # else:
+    #     mask = "s1.jpeg"
 
     return blur(blendType, img, mask, blurlvl) 
 
