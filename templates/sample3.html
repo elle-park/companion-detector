@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename= 'css/style.css') }}"
+    />
+    
+    <title>Companion Detector</title>
+    <script type=text/javascript src="{{ url_for('static', filename= 'script/script.js') }}"></script>
+  </head>
+  
+  <body>
+  
+    <img id="myImgId" alt="" src="{{ url_for('static',filename="/src/sample-3.jpg") }}" style="cursor: pointer;"/>
+    <script type="text/javascript">
+      var myImg = document.getElementById("myImgId");
+      myImg.onmousedown = GetCoordinates;
+    </script>
+
+    <div class="slider">
+      <label for="fader">Blur Level </label>
+      <input type="range" min="3" max="11" value="5" id="fader" step="2" list="blurlvl" oninput="myFunction()">
+      <datalist id="blurlvl">
+        <option>3</option>
+        <option>5</option>
+        <option>7</option>
+        <option>9</option>
+        <option>11</option>
+      </datalist>
+      <output id="sliderVal"> </output>
+    </div>
+
+    <div class="slider">
+      <label for="fader2">Blend Gradient Level </label>
+      <input type="range" min="3" max="11" value="5" id="fader2" step="2" list="gradientlvl" oninput="myFunction2()">
+      <datalist id="gradientlvl">
+        <option>3</option>
+        <option>5</option>
+        <option>7</option>
+        <option>9</option>
+        <option>11</option>
+      </datalist>
+      <output id="sliderVal2"> </output>
+    </div>
+
+    <div class="slider">
+      <label for="fader3">Companion Proximity Level </label>
+      <input type="range" min="0" max="40" value="10" id="fader3" step="10" list="proximitylvl" oninput="myFunction3()">
+      <datalist id="proximitylvl">
+        <option>0</option>
+        <option>10</option>
+        <option>20</option>
+        <option>30</option>
+        <option>40</option>
+      </datalist>
+      <output id="sliderVal3"> </output>
+    </div>
+
+    <script type="text/javascript">
+      function myFunction(faderType, sliderVal, type_level) {
+        var val = document.getElementById("fader").value;
+        document.getElementById('sliderVal').innerHTML = val; 
+        document.getElementById("blur_level").value = val;
+      }
+      function myFunction2() {
+        var val = document.getElementById("fader2").value; 
+        document.getElementById('sliderVal2').innerHTML = val; 
+        document.getElementById("gradient_level").value = val;
+      }
+      function myFunction3() {
+        var val = document.getElementById("fader3").value; 
+        document.getElementById('sliderVal3').innerHTML = val; 
+        document.getElementById("proximity_level").value = val;
+      }
+    </script>
+
+    <form action="{{ url_for("slider_page")}}" method="post">
+      <label for="X">X:</label>
+      <input type="number" id="x_coord" name="x_coord">
+      <label for="Y">Y:</label>
+      <input type="number" id="y_coord" name="y_coord">
+      <label for="Blur">Blur:</label>
+      <input type="number" id="blur_level" name="blur_level">
+      <label for="Gradient">Gradient:</label>
+      <input type="number" id="gradient_level" name="gradient_level">
+      <label for="Proximity">Proximity:</label>
+      <input type="number" id="proximity_level" name="proximity_level">
+      <input id="sample_page" name="sample_page" type="text" value="sample-3">
+      <button type="submit">Submit</button>
+    </form>
+
+    
+    
+  </body>
+  
+</html>
+
+<script type=text/javascript src="{{ url_for('static', filename= 'script/script.js') }}"></script>

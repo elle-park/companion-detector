@@ -13,7 +13,7 @@
   
   <body>
   
-    <img id="myImgId" alt="" src="{{ url_for('static',filename="/src/group.png") }}" style="cursor: pointer;"/>
+    <img id="myImgId" alt="" src="{{ url_for('static',filename="/src/sample-1.png") }}" style="cursor: pointer;"/>
     <script type="text/javascript">
       var myImg = document.getElementById("myImgId");
       myImg.onmousedown = GetCoordinates;
@@ -60,7 +60,7 @@
 
     <script type="text/javascript">
       function myFunction(faderType, sliderVal, type_level) {
-        var val = document.getElementById("fader").value; 
+        var val = document.getElementById("fader").value;
         document.getElementById('sliderVal').innerHTML = val; 
         document.getElementById("blur_level").value = val;
       }
@@ -87,6 +87,7 @@
       <input type="number" id="gradient_level" name="gradient_level">
       <label for="Proximity">Proximity:</label>
       <input type="number" id="proximity_level" name="proximity_level">
+      <input id="sample_page" name="sample_page" type="text" value="sample-1">
       <button type="submit">Submit</button>
     </form>
 
