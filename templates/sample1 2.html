@@ -32,47 +32,11 @@
       <output id="sliderVal"> </output>
     </div>
 
-    <div class="slider">
-      <label for="fader2">Blend Gradient Level </label>
-      <input type="range" min="3" max="11" value="5" id="fader2" step="2" list="gradientlvl" oninput="myFunction2()">
-      <datalist id="gradientlvl">
-        <option>3</option>
-        <option>5</option>
-        <option>7</option>
-        <option>9</option>
-        <option>11</option>
-      </datalist>
-      <output id="sliderVal2"> </output>
-    </div>
-
-    <div class="slider">
-      <label for="fader3">Companion Proximity Level </label>
-      <input type="range" min="0" max="40" value="10" id="fader3" step="10" list="proximitylvl" oninput="myFunction3()">
-      <datalist id="proximitylvl">
-        <option>0</option>
-        <option>10</option>
-        <option>20</option>
-        <option>30</option>
-        <option>40</option>
-      </datalist>
-      <output id="sliderVal3"> </output>
-    </div>
-
     <script type="text/javascript">
-      function myFunction(faderType, sliderVal, type_level) {
+      function myFunction() {
         var val = document.getElementById("fader").value; 
         document.getElementById('sliderVal').innerHTML = val; 
         document.getElementById("blur_level").value = val;
-      }
-      function myFunction2() {
-        var val = document.getElementById("fader2").value; 
-        document.getElementById('sliderVal2').innerHTML = val; 
-        document.getElementById("gradient_level").value = val;
-      }
-      function myFunction3() {
-        var val = document.getElementById("fader3").value; 
-        document.getElementById('sliderVal3').innerHTML = val; 
-        document.getElementById("proximity_level").value = val;
       }
     </script>
 
@@ -83,14 +47,20 @@
       <input type="number" id="y_coord" name="y_coord">
       <label for="Blur">Blur:</label>
       <input type="number" id="blur_level" name="blur_level">
-      <label for="Gradient">Gradient:</label>
-      <input type="number" id="gradient_level" name="gradient_level">
-      <label for="Proximity">Proximity:</label>
-      <input type="number" id="proximity_level" name="proximity_level">
       <button type="submit">Submit</button>
     </form>
 
-    
+    <div class="slider">
+      <label for="fader">Blend Gradient Level </label>
+      <input type="range" min="0" max="12" value="6" id="fader" step="3" list="blurLevel">
+      <datalist id="blurLevel">
+        <option>0</option>
+        <option>3</option>
+        <option>6</option>
+        <option>9</option>
+        <option>12</option>
+      </datalist>
+    </div>
     
   </body>
   
