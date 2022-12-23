@@ -179,7 +179,8 @@ def pyramid_blending(img_a, img_b, m, blend_level):
 
 def pyramid(img_a, img_b, m, blendlvl, x = 800):
     # x,y coordinates from either button click or box
-    size = 256*3
+    # size = 256*3
+    size = 256*(img_a.shape[0]//256)
     if x < img_a.shape[0]/2:
         x0, x1, y0, y1 = 0, size, 0, size
     else:
